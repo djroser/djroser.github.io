@@ -5,7 +5,7 @@
   
 
 
-<html class="theme-next muse use-motion" lang="">
+<html class="theme-next mist use-motion" lang="">
 <head>
   <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -93,7 +93,7 @@
   var NexT = window.NexT || {};
   var CONFIG = {
     root: '/',
-    scheme: 'Muse',
+    scheme: 'Mist',
     version: '5.1.4',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
     fancybox: true,
@@ -177,12 +177,22 @@
     <ul id="menu" class="menu">
       
         
-        <li class="menu-item menu-item-home">
+        <li class="menu-item menu-item-主页">
           <a href="/" rel="section">
             
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
-            Home
+            主页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-关于">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
           </a>
         </li>
       
@@ -229,12 +239,157 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/25/iOS收起键盘无效的几种解决方案/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DjRoser">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="DjRoser">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/25/iOS收起键盘无效的几种解决方案/" itemprop="url">iOS收起键盘无效的几种解决方案</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-25T18:23:16+08:00">
+                2018-04-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>收起键盘的方式通常有两种：辞去当前控件的第一响应者身份或者关闭父控件的可编辑状态。</p>
+<p>1、辞去当前控件的第一响应者身份</p>
+<p>[textField resignFirstResponder];</p>
+<p>2、关闭父控件的可编辑状态</p>
+<p>[self.view endEditing:YES];</p>
+<p>第一种方式直接对相应的textField进行处理，适用于只有一个输入框、or明确知道要关闭哪个textField的输入状态的情况。</p>
+<p>第二种方式简单粗暴，关闭当前view所有的编辑状态，堪称万精油。</p>
+<p>当拿不到父控件的时候，还有更暴力的方式：</p>
+<p>3、[[[UIApplication sharedApplication] keyWindow] endEditing:YES];</p>
+<p>－－－－－－－－－－－－我是分割线－－－－－－－－－－－－</p>
+<p>以上只是常规的处理，通常当你用度娘或者google来寻找解决方案的时候，以上的方法肯定都尝试过了、并且毫无效果。</p>
+<p>艸蛋场景一：</p>
+<p>订单支付页面，处于编辑状态－&gt;点击页面返回按钮－&gt;出现提示弹框－&gt;点完弹框，原本收起的键盘又会闪现一下，最后返回到上一页面。</p>
+<p>说了这么多，罪魁祸首就是那个弹框。</p>
+<p>在键盘的收起动画还没结束的时候，弹框弹了出来，抢走了textFiled的第一响应者身份。弹框消失后，textField又变回了第一响应者，继续执行键盘收起的动画。。。</p>
+<p>解决方案：在点击页面返回按钮的时候，在其点击事件首先将textFiled的第一响应者身份resign掉（或[self.view endEditing:YES];）。这样当弹框成为又辞去第一响应者之后，textFiled也不会成为第一响应者。（通俗的讲，就是敌军已经杀到老家，为了避免被俘，赶紧自杀）。</p>
+<p>刚开始遇到这个问题的时候，网友给出的方案：</p>
+<p>有些情况不知道谁是第一响应者，可以先[textField becomeFirstResponder];再[textField resignFirstResponder];</p>
+<p>艸蛋场景二：</p>
+<p>选择地址页面，在输入框输入地址－&gt;点击地址cell－&gt;出现提示弹框－&gt;点击弹框push到新的页面－&gt;新页面键盘闪现键盘。</p>
+<p>场景2<br>按照上述场景一的解决方案，在didSelectRowAtIndexPath:方法里[你的textField resignFirstResponder]即可。</p>
+<p>//在没有耗时操作的情况下，这样做确实可行。（错误想法）</p>
+<p>//本场景点击完地址cell会有一个耗时的逆地理反查的过程，这个时候上面的方法就不起作用了。（错误想法）</p>
+<p>思考：在走didSelectRowAtIndexPath:方法时，对相应的textField做resign操作，可能是无效的。因为cell正在辞去自己的第一响应者身份，很有可能还没辞完，此时对并不是第一响应者的textField做resign操作自然是无效的。</p>
+<p>解决办法：在弹框代码的上一句，[你的textField resignFirstResponder]；</p>
+<p>还有别的疑难场景的欢迎补充～</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/25/CoreData多线程实现初探（附源码）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DjRoser">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -393,7 +548,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DjRoser">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.jpeg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -538,6 +693,10 @@
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpeg"
+                alt="DjRoser" />
+            
               <p class="site-author-name" itemprop="name">DjRoser</p>
               <p class="site-description motion-element" itemprop="description"></p>
           </div>
@@ -549,7 +708,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -563,6 +722,34 @@
 
           
 
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/djroser" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:798811246@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://www.jianshu.com/u/829eb481dcf1" target="_blank" title="简书">
+                      
+                        <i class="fa fa-fw fa-twitter"></i>简书</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://weibo.com/u/1969953981/home?wvr=5" target="_blank" title="微博">
+                      
+                        <i class="fa fa-fw fa-facebook"></i>微博</a>
+                  </span>
+                
+            </div>
           
 
           
@@ -608,7 +795,7 @@
 
 
 
-  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
 
 
 

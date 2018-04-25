@@ -5,23 +5,23 @@
   
 
   
-  <title>使用Hexo一步一步搭建github博客 | Hexo</title>
+  <title>CoreData多线程实现初探（附源码） | DjRoser</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="由于历史的原因，项目中的火车票城市列表一直采用的全量更新，即：如果需要增删改某几个城市，则必须把app本地缓存的城市列表全部删除重新从接口拉取一份最新的数据。现在为了优化用户体验，需要改成增量更新的方式。一开始并没有考虑到多线程的问题，直接使用了项目中封装好的基于CoreData的DBHelper工具类进行开发。QA期间测试进行几千条城市数据的增删改才发现，中途会有2s～3s的卡顿。于是周末花了半">
 <meta property="og:type" content="article">
-<meta property="og:title" content="使用Hexo一步一步搭建github博客">
+<meta property="og:title" content="CoreData多线程实现初探（附源码）">
 <meta property="og:url" content="http://yoursite.com/2018/04/25/CoreData多线程实现初探（附源码）/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="DjRoser">
 <meta property="og:description" content="由于历史的原因，项目中的火车票城市列表一直采用的全量更新，即：如果需要增删改某几个城市，则必须把app本地缓存的城市列表全部删除重新从接口拉取一份最新的数据。现在为了优化用户体验，需要改成增量更新的方式。一开始并没有考虑到多线程的问题，直接使用了项目中封装好的基于CoreData的DBHelper工具类进行开发。QA期间测试进行几千条城市数据的增删改才发现，中途会有2s～3s的卡顿。于是周末花了半">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1458949-1ea085d1ef405ba5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2018-04-25T03:31:36.126Z">
+<meta property="og:updated_time" content="2018-04-25T07:31:35.637Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="使用Hexo一步一步搭建github博客">
+<meta name="twitter:title" content="CoreData多线程实现初探（附源码）">
 <meta name="twitter:description" content="由于历史的原因，项目中的火车票城市列表一直采用的全量更新，即：如果需要增删改某几个城市，则必须把app本地缓存的城市列表全部删除重新从接口拉取一份最新的数据。现在为了优化用户体验，需要改成增量更新的方式。一开始并没有考虑到多线程的问题，直接使用了项目中封装好的基于CoreData的DBHelper工具类进行开发。QA期间测试进行几千条城市数据的增删改才发现，中途会有2s～3s的卡顿。于是周末花了半">
 <meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/1458949-1ea085d1ef405ba5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
   
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+    <link rel="alternate" href="/atom.xml" title="DjRoser" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.png">
@@ -40,7 +40,7 @@
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
       <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
+        <a href="/" id="logo">DjRoser</a>
       </h1>
       
     </div>
@@ -80,7 +80,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      使用Hexo一步一步搭建github博客
+      CoreData多线程实现初探（附源码）
     </h1>
   
 
@@ -132,7 +132,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/04/25/CoreData多线程实现初探（附源码）/" data-id="cjgeqgou00001n5v19gp0h11l" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/04/25/CoreData多线程实现初探（附源码）/" data-id="cjgesabbc0001jcv1y5xx619p" class="article-share-link">Share</a>
       
       
     </footer>
@@ -181,7 +181,7 @@
       <ul>
         
           <li>
-            <a href="/2018/04/25/CoreData多线程实现初探（附源码）/">使用Hexo一步一步搭建github博客</a>
+            <a href="/2018/04/25/CoreData多线程实现初探（附源码）/">CoreData多线程实现初探（附源码）</a>
           </li>
         
           <li>

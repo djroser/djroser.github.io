@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>使用Hexo一步一步搭建github博客 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="由于历史的原因，项目中的火车票城市列表一直采用的全量更新，即：如果需要增删改某几个城市，则必须把app本地缓存的城市列表全部删除重新从接口拉取一份最新的数据。现在为了优化用户体验，需要改成增量更新的方式。一开始并没有考虑到多线程的问题，直接使用了项目中封装好的基于CoreData的DBHelper工具类进行开发。QA期间测试进行几千条城市数据的增删改才发现，中途会有2s～3s的卡顿。于是周末花了半">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Hexo一步一步搭建github博客">
+<meta property="og:url" content="http://yoursite.com/2018/04/25/CoreData多线程实现初探（附源码）/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="由于历史的原因，项目中的火车票城市列表一直采用的全量更新，即：如果需要增删改某几个城市，则必须把app本地缓存的城市列表全部删除重新从接口拉取一份最新的数据。现在为了优化用户体验，需要改成增量更新的方式。一开始并没有考虑到多线程的问题，直接使用了项目中封装好的基于CoreData的DBHelper工具类进行开发。QA期间测试进行几千条城市数据的增删改才发现，中途会有2s～3s的卡顿。于是周末花了半">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1458949-1ea085d1ef405ba5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-04-25T03:31:36.126Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用Hexo一步一步搭建github博客">
+<meta name="twitter:description" content="由于历史的原因，项目中的火车票城市列表一直采用的全量更新，即：如果需要增删改某几个城市，则必须把app本地缓存的城市列表全部删除重新从接口拉取一份最新的数据。现在为了优化用户体验，需要改成增量更新的方式。一开始并没有考虑到多线程的问题，直接使用了项目中封装好的基于CoreData的DBHelper工具类进行开发。QA期间测试进行几千条城市数据的增删改才发现，中途会有2s～3s的卡顿。于是周末花了半">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/1458949-1ea085d1ef405ba5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-CoreData多线程实现初探（附源码）" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/25/CoreData多线程实现初探（附源码）/" class="article-date">
+  <time datetime="2018-04-25T03:26:04.000Z" itemprop="datePublished">2018-04-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      使用Hexo一步一步搭建github博客
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>由于历史的原因，项目中的火车票城市列表一直采用的全量更新，即：如果需要增删改某几个城市，则必须把app本地缓存的城市列表全部删除重新从接口拉取一份最新的数据。现在为了优化用户体验，需要改成增量更新的方式。<br>一开始并没有考虑到多线程的问题，直接使用了项目中封装好的基于CoreData的DBHelper工具类进行开发。QA期间测试进行几千条城市数据的增删改才发现，中途会有2s～3s的卡顿。于是周末花了半天时间学习了下CoreData的多线程开发。</p>
+<p>####为什么不用GCD包一层异步去处理这些耗时操作？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">_managedObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li><p>CoreData不是线程安全的，对于ManagedObject以及ManagedObjectContext的访问，都只能在MOC初始化所指定的线程上进行（NSMainQueueConcurrencyType、NSPrivateQueueConcurrencyType），而不能跨线程。</p>
+</li>
+<li><p>对于CoreData的多线程，苹果有自己的一套解决方案，并不能简单的将MOC从一个线程中传递到另一个线程中使用。</p>
+</li>
+</ul>
+<p>###多种方案简介</p>
+<p>#####多线程方案之child/parent context</p>
+<blockquote>
+<p>ChildContext和ParentContext是相互独立的。只有当ChildContext中调用save了以后，才会把这段时间来Context的变化提交到ParentContext中，ChildContext并不会直接提交到NSPersistentStoreCoordinator中, parentContext就相当于它的NSPersistentStoreCoordinator。</p>
+</blockquote>
+<blockquote>
+<p>注意：子线程的save操作并没有任何关于Disk IO的操作。而后mainContext在UI线程又要执行一次save操作才能真正将数据变动写进数据库中，这里的save操作就与Disk IO有关了，而且又是在主线程，所以说这种设计是最阻碍UI线程的。</p>
+</blockquote>
+<p><img src="http://upload-images.jianshu.io/upload_images/1458949-1ea085d1ef405ba5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="方案一.png"></p>
+<p>#####多线程方案之Notification</p>
+<blockquote>
+<p>简单来说，就是不同的线程使用不同的context进行操作，当一个线程的context发生变化后，利用notification来通知另一个线程Context，另一个线程调用mergeChangesFromContextDidSaveNotification<br>来合并变化。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">persistentStoreCoordinator&lt;-mainContext, persistentStoreCoordinator&lt;-privateContext</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>首先在ViewController中要添加一个名为NSManagedObjectContextDidSaveNotification的通知<br>，然后子线程中创建privateContext，进行数据增删改查操作，直接save到本地数据库，这时在ViewController中会回调之前注册的NSManagedObjectContextDidSaveNotification的回调方法，在该方法中调用mainContext的mergeChangesFromContextDidSaveNotification:notification方法，将所有的数据变动merge到mainContext中，这样就保持了两个Context中的数据同步。由于大部分的操作都是privateContext在子线程中操作的，所以这种设计是UI线程耗时最少的一种设计，但是它的代价是需要多写mergeChanges的方法。（注：前两种parent,child的Context，一旦childContext调用save方法，其parentContext不用任何merge操作，CoreData自动将数据merge到parentContext当中）</p>
+</blockquote>
+<p>#####多线程方案之改良版child/parent context（本文实现）</p>
+<p>######理清关系<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">persistentStoreCoordinator&lt;-backgroundContext&lt;-mainContext&lt;-privateContext</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>这种设计是第一种的改进设计，也是上述的老外博主推荐的一种设计方式。它总共有三个Context，一是连接persistentStoreCoordinator也是最底层的backgroundContext，二是UI线程的mainContext，三是子线程的privateContext，他们的关系如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">privateContext.parentContext = mainContext, mainContext.parentContext = backgroundContext。</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p>######工作流程</p>
+<blockquote>
+<p>在应用中，如果我们有API操作，首先我们会起一个子线程进行API请求，在得到Response后要进行数据库操作，这是我们要创建一个privateContext进行数据的增删改查，然后call privateContext的save方法进行存储，这里的save操作只是将所有数据变动Push up到它的父Context中也就是mainContext中，然后mainContext继续call save方法，将数据变动Push up到它的父Context中也就是backgroundContext，最后调用backgroundContext的save方法真正将数据变动存储到Disk数据库中，在这个过程中，前两个save操作相对耗时较少，真正耗时的操作是最后backgroundContext的save操作，因为只有它有Disk IO的操作。</p>
+</blockquote>
+<p>#####干货</p>
+<p>######三个Context的初始化<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">appDelegate.m中的实现</span><br><span class="line">-(NSManagedObjectContext *)rootObjectContext &#123;//对应上述backgroundContext</span><br><span class="line">if (nil != _rootObjectContext) &#123;</span><br><span class="line">return _rootObjectContext;</span><br><span class="line">&#125;</span><br><span class="line">NSPersistentStoreCoordinator *coordinator = [self persistentStoreCoordinator];</span><br><span class="line">if (coordinator != nil) &#123;</span><br><span class="line">_rootObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];</span><br><span class="line">[_rootObjectContext setPersistentStoreCoordinator:coordinator];</span><br><span class="line">&#125;</span><br><span class="line">return _rootObjectContext;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (NSManagedObjectContext *)managedAsyncObjectContext</span><br><span class="line">&#123;//对应mainContext</span><br><span class="line">if (_managedAsyncObjectContext != nil) &#123;</span><br><span class="line">return _managedAsyncObjectContext;</span><br><span class="line">&#125;</span><br><span class="line">_managedAsyncObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];</span><br><span class="line">_managedAsyncObjectContext.parentContext = [self rootObjectContext];</span><br><span class="line">return _managedAsyncObjectContext;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (NSManagedObjectContext *)privateAsyncObjectContext</span><br><span class="line">&#123;</span><br><span class="line">if (_privateAsyncObjectContext != nil) &#123;</span><br><span class="line">return _privateAsyncObjectContext;</span><br><span class="line">&#125;</span><br><span class="line">_privateAsyncObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];</span><br><span class="line">[_privateAsyncObjectContext setParentContext:[self managedAsyncObjectContext]];</span><br><span class="line">return _privateAsyncObjectContext;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>######mainContext的save方法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">AppDelegate中saveContext方法，每次privateContext调用save方法成功之后都要call这个方法  </span><br><span class="line">- (void)saveAsyncContextWithWait:(BOOL)needWait</span><br><span class="line">&#123;</span><br><span class="line">NSManagedObjectContext *managedAsyncObjectContext = [self managedAsyncObjectContext];</span><br><span class="line">NSManagedObjectContext *rootObjectContext = [self rootObjectContext];</span><br><span class="line"></span><br><span class="line">if (nil == managedAsyncObjectContext) &#123;</span><br><span class="line">return;</span><br><span class="line">&#125;</span><br><span class="line">if ([managedAsyncObjectContext hasChanges]) &#123;</span><br><span class="line">NSLog(@&quot;Main context need to save&quot;);</span><br><span class="line">[managedAsyncObjectContext performBlockAndWait:^&#123;</span><br><span class="line">NSError *error = nil;</span><br><span class="line">if (![managedAsyncObjectContext save:&amp;error]) &#123;</span><br><span class="line">NSLog(@&quot;Save main context failed and error is %@&quot;, error);</span><br><span class="line">&#125;</span><br><span class="line">&#125;];</span><br><span class="line">&#125;</span><br><span class="line">if (nil == rootObjectContext) &#123;</span><br><span class="line">return;</span><br><span class="line">&#125;</span><br><span class="line">if ([rootObjectContext hasChanges]) &#123;</span><br><span class="line">NSLog(@&quot;Root context need to save&quot;);</span><br><span class="line">if (needWait) &#123;</span><br><span class="line">[rootObjectContext performBlockAndWait:^&#123;</span><br><span class="line">NSError *error = nil;</span><br><span class="line">if (![_rootObjectContext save:&amp;error]) &#123;</span><br><span class="line">NSLog(@&quot;Save root context failed and error is %@&quot;, error);</span><br><span class="line">&#125;</span><br><span class="line">&#125;];</span><br><span class="line">&#125;</span><br><span class="line">else &#123;</span><br><span class="line">[rootObjectContext performBlock:^&#123;</span><br><span class="line">NSError *error = nil;</span><br><span class="line">if (![_rootObjectContext save:&amp;error]) &#123;</span><br><span class="line">NSLog(@&quot;Save root context failed and error is %@&quot;, error);</span><br><span class="line">&#125;</span><br><span class="line">&#125;];</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>######CoreData多线程工具类DBAsyncHelper<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">#import &lt;Foundation/Foundation.h&gt;</span><br><span class="line">#import &lt;CoreData/CoreData.h&gt;</span><br><span class="line">@interface DBAsyncHelper : NSObject</span><br><span class="line"></span><br><span class="line">typedef void (^ DBCompletionBlock) (BOOL operationSuccess, id responseObject, NSString *errorMessage);</span><br><span class="line"></span><br><span class="line">/*********************************************************</span><br><span class="line">函数名称：startWithTimeConsumingOperation</span><br><span class="line">函数描述：子线程处理耗时DB操作（使用本类必须调此方法发起DB操作）</span><br><span class="line">输入参数：operationBlock :数据处理代码块  completionBlock :成功回调（主要用于刷新UI）</span><br><span class="line">输出参数：无</span><br><span class="line">返回值：无</span><br><span class="line">**********************************************************/</span><br><span class="line">+ (void)startWithTimeConsumingOperation:(void(^)())operationBlock completionBlock:(DBCompletionBlock)completionBlock;</span><br><span class="line"></span><br><span class="line">/*********************************************************</span><br><span class="line">函数名称：asyncSearchBy</span><br><span class="line">函数描述：根据ModelName查询记录</span><br><span class="line">输入参数：ModelEmptyName :数据库表名</span><br><span class="line">输出参数：查询结果</span><br><span class="line">返回值：NSMutableArray</span><br><span class="line">**********************************************************/</span><br><span class="line">+(NSMutableArray*)asyncSearchBy:(NSString*)ModelEmptyName;</span><br><span class="line"></span><br><span class="line">/*********************************************************</span><br><span class="line">函数名称：asyncSearchWithPredicateByEntity</span><br><span class="line">函数描述：自定义二级查询</span><br><span class="line">输入参数：modelEntityName：Entity名  predicate：查询条件(NSPredicate对象)</span><br><span class="line">输出参数：查询结果</span><br><span class="line">返回值：NSMutableArray</span><br><span class="line">**********************************************************/</span><br><span class="line">+(NSMutableArray*)asyncSearchWithPredicateByEntity:(NSString*)modelEntityName withKeys:(NSPredicate*) predicate;</span><br><span class="line"></span><br><span class="line">/*********************************************************</span><br><span class="line">函数名称：asyncInsertWithEntity</span><br><span class="line">函数描述：根据Model名称获得一个数据库实例对象</span><br><span class="line">输入参数：ModelEmptyName:数据库表名</span><br><span class="line">输出参数：数据库实例对象</span><br><span class="line">返回值：id</span><br><span class="line">**********************************************************/</span><br><span class="line">+(id)asyncInsertWithEntity:(NSString*)ModelEntityName;</span><br><span class="line"></span><br><span class="line">+(void)asyncDeleteWithOutSaveBy:(id)obj;</span><br><span class="line"></span><br><span class="line">+(Boolean)Save;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure></p>
+<p>######DBAsyncHelper.m具体实现<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line">#import &quot;DBAsyncHelper.h&quot;</span><br><span class="line"></span><br><span class="line">#import &quot;AppDelegate.h&quot;</span><br><span class="line">#import &quot;TCFoundation.h&quot;</span><br><span class="line"></span><br><span class="line">@implementation DBAsyncHelper</span><br><span class="line"></span><br><span class="line">+ (void)startWithTimeConsumingOperation:(void(^)())operationBlock completionBlock:(DBCompletionBlock)completionBlock</span><br><span class="line">&#123;</span><br><span class="line">NSManagedObjectContext *context = [AppDelegateEntity privateAsyncObjectContext];</span><br><span class="line">[context performBlock:^&#123;</span><br><span class="line">operationBlock();</span><br><span class="line">NSError * error = nil;</span><br><span class="line">if ([context save:&amp;error]) &#123;</span><br><span class="line">[AppDelegateEntity saveAsyncContextWithWait:YES];</span><br><span class="line">completionBlock(YES,nil,nil);</span><br><span class="line">&#125; else &#123;</span><br><span class="line">NSString *sError = [NSString stringWithFormat:@&quot;%@&quot;,error.localizedDescription];</span><br><span class="line">NSDebugLog(@&quot;%@&quot;,sError);</span><br><span class="line">completionBlock(NO,nil,sError);</span><br><span class="line">&#125;</span><br><span class="line">&#125;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+(NSMutableArray*)asyncSearchBy:(NSString*)ModelEmptyName</span><br><span class="line">&#123;</span><br><span class="line">NSManagedObjectContext* context = [AppDelegateEntity privateAsyncObjectContext];</span><br><span class="line">NSFetchRequest* request = [[NSFetchRequest alloc] init];</span><br><span class="line">NSEntityDescription* entityDesc = [NSEntityDescription entityForName:ModelEmptyName inManagedObjectContext:context];</span><br><span class="line">[request setEntity:entityDesc];</span><br><span class="line"></span><br><span class="line">NSError* error;</span><br><span class="line">NSArray* objects = [[NSArray alloc] initWithArray:[context executeFetchRequest:request error:&amp;error]];</span><br><span class="line">NSMutableArray* mutableObjects = [[NSMutableArray alloc] initWithArray:objects];</span><br><span class="line">return mutableObjects;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">+(NSMutableArray*)asyncSearchWithPredicateByEntity:(NSString*)modelEntityName withKeys:(NSPredicate*) predicate</span><br><span class="line">&#123;</span><br><span class="line">NSManagedObjectContext *context = [AppDelegateEntity privateAsyncObjectContext];</span><br><span class="line">NSFetchRequest* request = [[NSFetchRequest alloc] init];</span><br><span class="line">NSEntityDescription* entityDesc = [NSEntityDescription entityForName:modelEntityName inManagedObjectContext:context];</span><br><span class="line">[request setEntity:entityDesc];</span><br><span class="line">[request setPredicate:predicate];</span><br><span class="line">NSError* error;</span><br><span class="line">NSArray* objects = [[NSArray alloc] initWithArray:[context executeFetchRequest:request error:&amp;error]];</span><br><span class="line">NSMutableArray *resultObjects = [[NSMutableArray alloc] initWithArray:objects];</span><br><span class="line">return resultObjects;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+(id)asyncInsertWithEntity:(NSString*)ModelEntityName</span><br><span class="line">&#123;</span><br><span class="line">NSManagedObjectContext *context = [AppDelegateEntity privateAsyncObjectContext];</span><br><span class="line">id obj = [NSEntityDescription insertNewObjectForEntityForName:ModelEntityName inManagedObjectContext:context];</span><br><span class="line">return obj;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+(void)asyncDeleteWithOutSaveBy:(id)obj</span><br><span class="line">&#123;</span><br><span class="line">NSManagedObjectContext *context = [AppDelegateEntity privateAsyncObjectContext];</span><br><span class="line">[context deleteObject:obj];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+(Boolean)Save</span><br><span class="line">&#123;</span><br><span class="line">NSManagedObjectContext *context = [AppDelegateEntity privateAsyncObjectContext];</span><br><span class="line">NSError* error = nil;</span><br><span class="line">if (![context save:&amp;error])</span><br><span class="line">&#123;</span><br><span class="line">return NO;</span><br><span class="line">&#125;</span><br><span class="line">return YES;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>######DBAsyncHelper使用示例<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">//子线程更新站点</span><br><span class="line">- (void)asyncUpdateStationList</span><br><span class="line">&#123;</span><br><span class="line">[DBAsyncHelper startWithTimeConsumingOperation:^&#123;</span><br><span class="line">//使用DBAsyncHelper中相关增删方法进行数据库耗时操作</span><br><span class="line">&#125; completionBlock:^(BOOL operationSuccess, id responseObject, NSString *errorMessage) &#123;</span><br><span class="line">//handle result</span><br><span class="line">&#125;];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>####备注<br>本文重点在于整理出一种可以直接使用的CoreData多线程解决方案，学习过程中参考了以下文章：<br> <a href="http://blog.csdn.net/hello_hwc/article/details/46299943" target="_blank" rel="noopener">iOS CoreData详解（五）多线程</a><br> <a href="http://blog.csdn.net/willmomo/article/details/19759413" target="_blank" rel="noopener">CoreData 多线程下NSManagedObjectContext的使用</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/04/25/CoreData多线程实现初探（附源码）/" data-id="cjgeqgou00001n5v19gp0h11l" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2018/04/25/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/04/25/CoreData多线程实现初探（附源码）/">使用Hexo一步一步搭建github博客</a>
+          </li>
+        
+          <li>
+            <a href="/2018/04/25/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
